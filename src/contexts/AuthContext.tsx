@@ -21,10 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
-  console.log(
-    "🔄 AuthProvider renderizado - Usuario atual:",
-    usuario?.nome || "nenhum"
-  );
+  console.log("🔄 AuthProvider renderizado - Usuario atual:", usuario?.nome || "nenhum");
 
   // Carrega usuário salvo ao iniciar o app
   useEffect(() => {
@@ -33,10 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Monitora mudanças no estado do usuario
   useEffect(() => {
-    console.log(
-      "🔔 Estado 'usuario' mudou:",
-      usuario ? `${usuario.nome} (${usuario.perfil})` : "null"
-    );
+    console.log("🔔 Estado 'usuario' mudou:", usuario ? `${usuario.nome} (${usuario.perfil})` : "null");
   }, [usuario]);
 
   async function carregarUsuario() {
@@ -60,26 +54,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, senha: string): Promise<boolean> {
     try {
       console.log("🔑 Tentando login com email:", email);
-
+      
+      // Busca usuários cadastrados
       const usuariosJSON = await AsyncStorage.getItem("@usuarios");
       const usuarios: Usuario[] = usuariosJSON ? JSON.parse(usuariosJSON) : [];
       console.log(`📋 ${usuarios.length} usuários encontrados no sistema`);
 
+      // Busca usuário por email e senha
       const usuarioEncontrado = usuarios.find(
         (u) => u.email === email && u.senha === senha
       );
 
       if (usuarioEncontrado) {
         console.log("✅ Credenciais válidas para:", usuarioEncontrado.nome);
-
+        
         // Remove senha antes de salvar no contexto (segurança)
         const { senha: _, ...usuarioSemSenha } = usuarioEncontrado;
         const usuarioParaSalvar = usuarioSemSenha as Usuario;
 
-        // Salva no AsyncStorage
+        // Salva no AsyncStorage PRIMEIRO
         await AsyncStorage.setItem("@usuario", JSON.stringify(usuarioParaSalvar));
         console.log("💾 Usuário salvo no AsyncStorage");
-
+        
         // Atualiza estado do contexto
         setUsuario(usuarioParaSalvar);
         console.log("🎯 Login concluído com sucesso!");
@@ -97,34 +93,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function logout() {
     try {
       console.log("🚪 Iniciando logout...");
-
+      console.log("🔍 Usuário atual antes do logout:", usuario?.nome, usuario?.perfil);
+      
+      // 1. Verifica se existe antes de remover
       const usuarioAntes = await AsyncStorage.getItem("@usuario");
-      console.log(
-        "📦 @usuario ANTES da remoção:",
-        usuarioAntes ? "EXISTE" : "NÃO EXISTE"
-      );
-
+      console.log("📦 @usuario ANTES da remoção:", usuarioAntes ? "EXISTE" : "NÃO EXISTE");
+      
+      // 2. Remove do AsyncStorage - MÚLTIPLAS TENTATIVAS
+      console.log("🗑️ Removendo @usuario do AsyncStorage...");
       await AsyncStorage.removeItem("@usuario");
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
+      
+      // 3. Aguarda um pouco para garantir que foi removido
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // 4. VERIFICA se realmente foi removido
       const usuarioDepois = await AsyncStorage.getItem("@usuario");
-      console.log(
-        "📦 @usuario DEPOIS da remoção:",
-        usuarioDepois ? "⚠️ AINDA EXISTE!" : "✅ REMOVIDO"
-      );
-
+      console.log("📦 @usuario DEPOIS da remoção:", usuarioDepois ? "⚠️ AINDA EXISTE!" : "✅ REMOVIDO");
+      
+      // 5. Se ainda existe, tenta remover novamente com força
       if (usuarioDepois) {
         console.log("⚠️ TENTANDO REMOVER NOVAMENTE...");
         await AsyncStorage.removeItem("@usuario");
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const verificacaoFinal = await AsyncStorage.getItem("@usuario");
-        console.log(
-          "📦 Verificação FINAL:",
-          verificacaoFinal ? "❌ FALHOU" : "✅ REMOVIDO"
-        );
-
+        console.log("📦 Verificação FINAL:", verificacaoFinal ? "❌ FALHOU - AINDA EXISTE" : "✅ REMOVIDO");
+        
+        // Última tentativa: limpar TODAS as chaves (emergência)
         if (verificacaoFinal) {
           console.log("🚨 EMERGÊNCIA: Tentando AsyncStorage.clear()...");
           const allKeys = await AsyncStorage.getAllKeys();
@@ -133,12 +128,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("✅ multiRemove executado");
         }
       }
-
+      
+      // 6. Limpa estado do contexto
       setUsuario(null);
       console.log("✅ Estado do contexto limpo");
       console.log("🎯 Logout concluído!");
     } catch (error) {
       console.error("❌ Erro ao fazer logout:", error);
+      // Mesmo com erro, tenta limpar o estado
       setUsuario(null);
     }
   }

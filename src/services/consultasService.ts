@@ -16,7 +16,9 @@ class ConsultasService {
     try {
       const consultasJSON = await AsyncStorage.getItem("@consultas");
       if (!consultasJSON) return [];
-      return JSON.parse(consultasJSON);
+      
+      const consultas = JSON.parse(consultasJSON);
+      return consultas;
     } catch (error) {
       console.error("Erro ao obter consultas:", error);
       return [];
@@ -36,28 +38,27 @@ class ConsultasService {
   }
 
   /**
-   * Lista consultas filtradas por usuário
-   * (pacientes veem só as suas, admin vê todas)
+   * Lista consultas filtradas por usuário (pacientes veem só as suas, admin vê todas)
    */
-  async listarConsultas(
-    usuarioId?: number,
-    isAdmin: boolean = false
-  ): Promise<Consulta[]> {
+  async listarConsultas(usuarioId?: number, isAdmin: boolean = false): Promise<Consulta[]> {
     const todasConsultas = await this.obterTodasConsultas();
-
+    
+    // Admin vê todas as consultas
     if (isAdmin) {
       return todasConsultas;
     }
-
+    
+    // Paciente vê apenas suas consultas
     if (usuarioId) {
       return todasConsultas.filter((c) => c.usuarioId === usuarioId);
     }
-
+    
     return [];
   }
 
   /**
    * Obtém uma consulta específica por ID
+   * Verifica se o usuário tem permissão para ver a consulta
    */
   async obterConsulta(
     id: number,
@@ -66,15 +67,16 @@ class ConsultasService {
   ): Promise<Consulta> {
     const todasConsultas = await this.obterTodasConsultas();
     const consulta = todasConsultas.find((c) => c.id === id);
-
+    
     if (!consulta) {
       throw new Error("Consulta não encontrada");
     }
-
+    
+    // Verifica permissão
     if (!isAdmin && consulta.usuarioId !== usuarioId) {
       throw new Error("Você não tem permissão para visualizar esta consulta");
     }
-
+    
     return consulta;
   }
 
@@ -83,20 +85,20 @@ class ConsultasService {
    */
   async criarConsulta(consultaData: Omit<Consulta, "id">): Promise<Consulta> {
     const todasConsultas = await this.obterTodasConsultas();
-
+    
     const novaConsulta: Consulta = {
       ...consultaData,
-      id: Date.now(), // Usa timestamp como ID único
+      id: Date.now(), // Usa timestamp como ID
     };
-
+    
     todasConsultas.push(novaConsulta);
     await this.salvarConsultas(todasConsultas);
-
+    
     return novaConsulta;
   }
 
   /**
-   * Confirma uma consulta (muda status de "agendada" para "confirmada")
+   * Atualiza o status de uma consulta para "confirmada"
    */
   async confirmarConsulta(
     id: number,
@@ -105,30 +107,31 @@ class ConsultasService {
   ): Promise<Consulta> {
     const todasConsultas = await this.obterTodasConsultas();
     const index = todasConsultas.findIndex((c) => c.id === id);
-
+    
     if (index === -1) {
       throw new Error("Consulta não encontrada");
     }
-
+    
+    // Verifica permissão
     if (!isAdmin && todasConsultas[index].usuarioId !== usuarioId) {
       throw new Error("Você não tem permissão para modificar esta consulta");
     }
-
+    
     if (todasConsultas[index].status !== "agendada") {
       throw new Error("Apenas consultas agendadas podem ser confirmadas");
     }
-
+    
     todasConsultas[index] = {
       ...todasConsultas[index],
       status: "confirmada",
     };
-
+    
     await this.salvarConsultas(todasConsultas);
     return todasConsultas[index];
   }
 
   /**
-   * Cancela uma consulta
+   * Atualiza o status de uma consulta para "cancelada"
    */
   async cancelarConsulta(
     id: number,
@@ -137,15 +140,16 @@ class ConsultasService {
   ): Promise<Consulta> {
     const todasConsultas = await this.obterTodasConsultas();
     const index = todasConsultas.findIndex((c) => c.id === id);
-
+    
     if (index === -1) {
       throw new Error("Consulta não encontrada");
     }
-
+    
+    // Verifica permissão
     if (!isAdmin && todasConsultas[index].usuarioId !== usuarioId) {
       throw new Error("Você não tem permissão para modificar esta consulta");
     }
-
+    
     if (
       todasConsultas[index].status !== "agendada" &&
       todasConsultas[index].status !== "confirmada"
@@ -154,45 +158,40 @@ class ConsultasService {
         "Apenas consultas agendadas ou confirmadas podem ser canceladas"
       );
     }
-
+    
     todasConsultas[index] = {
       ...todasConsultas[index],
       status: "cancelada",
     };
-
+    
     await this.salvarConsultas(todasConsultas);
     return todasConsultas[index];
   }
 
   /**
-   * Marca consulta como realizada (apenas admin)
+   * Atualiza o status de uma consulta para "realizada" (apenas admin)
    */
-  async realizarConsulta(
-    id: number,
-    isAdmin: boolean = false
-  ): Promise<Consulta> {
+  async realizarConsulta(id: number, isAdmin: boolean = false): Promise<Consulta> {
     if (!isAdmin) {
-      throw new Error(
-        "Apenas administradores podem marcar consultas como realizadas"
-      );
+      throw new Error("Apenas administradores podem marcar consultas como realizadas");
     }
 
     const todasConsultas = await this.obterTodasConsultas();
     const index = todasConsultas.findIndex((c) => c.id === id);
-
+    
     if (index === -1) {
       throw new Error("Consulta não encontrada");
     }
-
+    
     if (todasConsultas[index].status !== "confirmada") {
       throw new Error("Apenas consultas confirmadas podem ser realizadas");
     }
-
+    
     todasConsultas[index] = {
       ...todasConsultas[index],
       status: "realizada",
     };
-
+    
     await this.salvarConsultas(todasConsultas);
     return todasConsultas[index];
   }
@@ -291,7 +290,7 @@ const CONSULTAS_INICIAIS: Consulta[] = [
 export async function inicializarConsultas(): Promise<void> {
   try {
     const consultasExistentes = await AsyncStorage.getItem("@consultas");
-
+    
     if (!consultasExistentes) {
       await AsyncStorage.setItem("@consultas", JSON.stringify(CONSULTAS_INICIAIS));
       console.log("✅ Consultas iniciais criadas");

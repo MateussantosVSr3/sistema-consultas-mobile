@@ -6,12 +6,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Consulta } from "../types";
-import {
-  formatarData,
-  formatarHorario,
-  obterCorStatus,
-  obterTextoStatus,
-} from "../utils/formatters";
+import { formatarData, formatarHorario, obterCorStatus, obterTextoStatus } from "../utils/formatters";
 
 type ConsultaCardProps = {
   consulta: Consulta;
@@ -82,8 +77,7 @@ export default function ConsultaCard({
           </TouchableOpacity>
         )}
 
-        {(consulta.status === "agendada" ||
-          consulta.status === "confirmada") &&
+        {(consulta.status === "agendada" || consulta.status === "confirmada") &&
           onCancelar && (
             <TouchableOpacity
               style={[styles.botao, styles.botaoCancelar]}
@@ -168,10 +162,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
   },
   botaoCancelar: {
-    backgroundColor: "#f44336",
+    backgroundColor: "#F44336",
   },
   botaoDetalhes: {
-    backgroundColor: "transparent",
+    backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#79059C",
   },

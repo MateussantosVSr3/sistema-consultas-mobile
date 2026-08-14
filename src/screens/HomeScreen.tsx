@@ -24,9 +24,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   console.log("🏠 HomeScreen renderizado - Usuario:", usuario?.nome);
 
   async function handleLogout() {
+    console.log("� Iniciando logout...");
     try {
       await logout();
+      console.log("✅ Logout concluído com sucesso");
     } catch (error) {
+      console.error("❌ Erro no logout:", error);
       Alert.alert("Erro", "Não foi possível sair da conta. Tente novamente.");
     }
   }
@@ -78,14 +81,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         {/* Botão de Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
           <Text style={styles.logoutText}>🚪 Sair da Conta</Text>
         </TouchableOpacity>
 
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Sistema de Consultas Médicas</Text>
-          <Text style={styles.footerSubtext}>FIAP - 3ESA</Text>
         </View>
       </ScrollView>
     </View>

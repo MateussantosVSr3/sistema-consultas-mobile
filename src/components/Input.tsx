@@ -1,5 +1,11 @@
 import React from "react";
-import { TextInput, Text, View, StyleSheet, TextInputProps } from "react-native";
+import {
+  TextInput,
+  Text,
+  View,
+  StyleSheet,
+  TextInputProps,
+} from "react-native";
 
 type InputProps = TextInputProps & {
   label: string;

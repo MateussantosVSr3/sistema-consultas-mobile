@@ -55,24 +55,30 @@ export default function ConsultaDetalhesScreen({
 
   async function handleConfirmar() {
     if (!consulta) return;
-    Alert.alert("Confirmar Consulta", "Deseja confirmar esta consulta?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Confirmar",
-        onPress: async () => {
-          try {
-            await consultasService.confirmarConsulta(consulta.id);
-            carregarConsulta();
-          } catch (error) {
-            Alert.alert("Erro", "Não foi possível confirmar a consulta");
-          }
+
+    Alert.alert(
+      "Confirmar Consulta",
+      "Deseja confirmar esta consulta?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Confirmar",
+          onPress: async () => {
+            try {
+              await consultasService.confirmarConsulta(consulta.id);
+              carregarConsulta();
+            } catch (error) {
+              Alert.alert("Erro", "Não foi possível confirmar a consulta");
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   }
 
   async function handleCancelar() {
     if (!consulta) return;
+
     Alert.alert(
       "Cancelar Consulta",
       "Tem certeza que deseja cancelar esta consulta?",

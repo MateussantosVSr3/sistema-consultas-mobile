@@ -39,18 +39,13 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function Navigation() {
   const { usuario, loading, logout } = useAuth();
 
+  // Log mudanças no estado de autenticação
   useEffect(() => {
     if (!loading) {
       if (usuario) {
-        console.log(
-          "🔐 Navigation: Usuário logado ->",
-          usuario.nome,
-          `(${usuario.perfil})`
-        );
+        console.log("🔐 Navigation: Usuário logado ->", usuario.nome, `(${usuario.perfil})`);
       } else {
-        console.log(
-          "🔓 Navigation: Nenhum usuário logado - Mostrando tela de Login"
-        );
+        console.log("🔓 Navigation: Nenhum usuário logado - Mostrando tela de Login");
       }
     }
   }, [usuario, loading]);
@@ -76,7 +71,7 @@ export default function Navigation() {
           headerTitleStyle: {
             fontWeight: "bold",
           },
-          headerRight: () =>
+          headerRight: () => (
             usuario ? (
               <View style={styles.headerRight}>
                 <View style={styles.userBadge}>
@@ -87,7 +82,8 @@ export default function Navigation() {
                   </View>
                 </View>
               </View>
-            ) : null,
+            ) : null
+          ),
         }}
       >
         {!usuario ? (
@@ -202,7 +198,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   headerRight: {
-    marginRight: 8,
+    marginRight: 10,
   },
   userBadge: {
     flexDirection: "row",
@@ -213,7 +209,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     color: "#fff",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -18,7 +19,6 @@ import consultasService from "../services/consultasService";
 import { Consulta } from "../interfaces/consulta";
 import { StatusConsulta } from "../types/statusConsulta";
 import { ConsultaCard, Loading, EmptyState } from "../components";
-import { useFocusEffect } from "@react-navigation/native";
 
 type ConsultasListScreenProps = {
   navigation: any;
@@ -31,9 +31,7 @@ export default function ConsultasListScreen({
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filtroAtivo, setFiltroAtivo] = useState<StatusConsulta | "todas">(
-    "todas"
-  );
+  const [filtroAtivo, setFiltroAtivo] = useState<StatusConsulta | "todas">("todas");
 
   useFocusEffect(
     useCallback(() => {
@@ -44,6 +42,7 @@ export default function ConsultasListScreen({
   async function carregarConsultas() {
     setLoading(true);
     try {
+      // Carrega consultas filtradas por usuário
       const dados = await consultasService.listarConsultas(
         usuario?.id,
         isAdmin()
@@ -84,11 +83,7 @@ export default function ConsultasListScreen({
           style: "destructive",
           onPress: async () => {
             try {
-              await consultasService.cancelarConsulta(
-                id,
-                usuario?.id,
-                isAdmin()
-              );
+              await consultasService.cancelarConsulta(id, usuario?.id, isAdmin());
               Alert.alert("Sucesso", "Consulta cancelada");
               carregarConsultas();
             } catch (error: any) {
