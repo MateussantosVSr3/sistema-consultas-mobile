@@ -99,10 +99,15 @@ export default function ConsultasListScreen({
     navigation.navigate("ConsultaDetalhes", { consultaId: id });
   }
 
-  const consultasFiltradas =
+  const consultasFiltradas = (
     filtroAtivo === "todas"
       ? consultas
-      : consultas.filter((c) => c.status === filtroAtivo);
+      : consultas.filter((c) => c.status === filtroAtivo)
+  ).slice().sort((a, b) => {
+    const pa = a.prioridade || a.emergencia ? 1 : 0;
+    const pb = b.prioridade || b.emergencia ? 1 : 0;
+    return pb - pa;
+  });
 
   if (loading) {
     return <Loading mensagem="Carregando consultas..." />;

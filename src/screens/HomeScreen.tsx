@@ -78,6 +78,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               Ver todas as suas consultas
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.card, styles.cardPressao]}
+            onPress={() => navigation.navigate("PressaoArterial")}
+          >
+            <Text style={styles.cardIcone}>🩺</Text>
+            <Text style={styles.cardTitulo}>Pressão Arterial</Text>
+            <Text style={styles.cardDescricao}>
+              Registrar aferição e acionar emergência se necessário
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Botão de Logout */}
@@ -141,6 +152,9 @@ const styles = StyleSheet.create({
   },
   cardTerciario: {
     backgroundColor: "#FF9800",
+  },
+  cardPressao: {
+    backgroundColor: "#C62828",
   },
   cardIcone: {
     fontSize: 48,
